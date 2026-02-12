@@ -1,4 +1,5 @@
 import { createClient } from '@/utils/supabase/server'
+import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { CheckIn } from '@/types/dashboard'
 import { RecentActivityList } from './RecentActivityList'
@@ -12,6 +13,11 @@ export default async function DashboardPage() {
     // Get start of today
     const today = new Date()
     today.setHours(0, 0, 0, 0)
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+        redirect('/login')
+    }
 
     // Fetch today's checkins
     const { data: checkIns } = await supabase
