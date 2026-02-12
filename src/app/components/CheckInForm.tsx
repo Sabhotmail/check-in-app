@@ -67,16 +67,31 @@ export function CheckInForm() {
 
     return (
         <div className="w-full relative">
-            <div className="absolute inset-0 bg-indigo-500/10 blur-[100px] rounded-full"></div>
-            <GlassCard className="relative w-full text-center p-8 border-slate-700/50">
-                <div className="text-6xl font-mono mb-2 tracking-wider font-light text-slate-100">
-                    {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </div>
-                <p className="text-indigo-400 mb-8 uppercase tracking-widest text-xs font-bold">
-                    {new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                </p>
+            {/* Animated background glow */}
+            <motion.div
+                animate={{
+                    scale: [1, 1.2, 1],
+                    opacity: [0.1, 0.2, 0.1]
+                }}
+                transition={{ duration: 8, repeat: Infinity }}
+                className="absolute -top-20 -left-20 w-64 h-64 bg-indigo-500/30 blur-[100px] rounded-full"
+            ></motion.div>
 
-                <div className="bg-slate-900/50 aspect-square w-full rounded-2xl mb-6 relative overflow-hidden ring-1 ring-slate-700 shadow-2xl">
+            <GlassCard className="relative w-full text-center p-8 border-slate-700/50 shadow-2xl backdrop-blur-2xl">
+                <div className="mb-8">
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="text-7xl font-mono mb-2 tracking-tighter font-bold text-white neo-glow"
+                    >
+                        {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
+                    </motion.div>
+                    <p className="text-indigo-400 uppercase tracking-[0.3em] text-[10px] font-black">
+                        {new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
+                    </p>
+                </div>
+
+                <div className="bg-slate-950 aspect-square w-full rounded-[2.5rem] mb-8 relative overflow-hidden ring-1 ring-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)]">
                     <CameraCapture
                         onCapture={handleCapture}
                         onRetake={handleRetake}
@@ -85,24 +100,24 @@ export function CheckInForm() {
                 </div>
 
                 {geoError && (
-                    <div className="flex flex-col items-center gap-2 mb-4">
-                        <p className="text-rose-400 text-sm bg-rose-500/10 p-2 rounded">{geoError}</p>
+                    <div className="flex flex-col items-center gap-2 mb-6 p-4 bg-rose-500/5 rounded-2xl border border-rose-500/10">
+                        <p className="text-rose-400 text-xs font-medium">{geoError}</p>
                         <button
                             onClick={() => retry()}
-                            className="text-xs text-indigo-400 hover:text-indigo-300 underline"
+                            className="text-[10px] font-bold uppercase tracking-widest text-indigo-400 hover:text-white transition-colors"
                         >
-                            Retry GPS
+                            Retry Satellite Fix
                         </button>
                     </div>
                 )}
 
                 {statusMessage && (
                     <motion.div
-                        initial={{ opacity: 0, y: -10 }}
+                        initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className={`text-sm mb-4 p-3 rounded-lg font-medium ${statusMessage.includes('successful')
-                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                            : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                        className={`text-xs mb-6 p-4 rounded-2xl font-bold uppercase tracking-widest border ${statusMessage.includes('successful')
+                            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 neo-glow-emerald'
+                            : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
                             }`}
                     >
                         {statusMessage}
@@ -110,30 +125,34 @@ export function CheckInForm() {
                 )}
 
                 <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                    whileHover={(!image || !location || isSubmitting) ? {} : { scale: 1.02 }}
+                    whileTap={(!image || !location || isSubmitting) ? {} : { scale: 0.98 }}
                     onClick={handleSubmit}
                     disabled={!image || !location || isSubmitting}
-                    className={`w-full font-bold py-4 rounded-xl text-lg transition-all shadow-lg flex items-center justify-center gap-2
+                    className={`w-full font-black py-5 rounded-2xl text-sm uppercase tracking-[0.2em] transition-all shadow-2xl flex items-center justify-center gap-3
                         ${!image || !location || isSubmitting
-                            ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
-                            : 'bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-600 text-white shadow-indigo-500/25 border border-indigo-400/20'}`}
+                            ? 'bg-slate-800/50 text-slate-600 cursor-not-allowed border border-white/5'
+                            : 'bg-gradient-to-r from-indigo-600 via-indigo-500 to-indigo-600 bg-[length:200%_auto] hover:bg-right text-white shadow-indigo-500/40 border border-white/10'}`}
                 >
                     {isSubmitting ? (
                         <>
                             <span className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                            CHECKING IN...
+                            Synchronizing...
                         </>
                     ) : (
-                        'CHECK IN NOW'
+                        image ? 'Authorize Check-in' : 'Identity Required'
                     )}
                 </motion.button>
 
-                <div className="mt-6 flex items-center justify-center space-x-2 text-xs text-slate-500 font-mono">
-                    <span className={`h-2 w-2 rounded-full shadow-[0_0_10px_currentColor] ${location ? 'bg-emerald-500 text-emerald-500' : 'bg-amber-500 text-amber-500 animate-pulse'}`}></span>
-                    <span className="tracking-wider">{location ? `LOC: ${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}` : 'ACQUIRING SATELLITE FIX...'}</span>
+                <div className="mt-8 flex items-center justify-center space-x-3 text-[10px] text-slate-500 font-bold uppercase tracking-widest">
+                    <div className="relative flex h-2 w-2">
+                        <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${location ? 'bg-emerald-400' : 'bg-amber-400'}`}></span>
+                        <span className={`relative inline-flex rounded-full h-2 w-2 ${location ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
+                    </div>
+                    <span>{location ? `Signal Locked: ${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}` : 'Wait: Acquiring GPS...'}</span>
                 </div>
             </GlassCard>
         </div>
     )
+
 }
