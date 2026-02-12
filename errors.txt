@@ -1,0 +1,2 @@
+src/utils/supabase/middleware.ts(11,5): error TS2304: Cannot find name 'constsupabase'.
+src/utils/supabase/middleware.ts(38,15): error TS2304: Cannot find name 'supabase'.
