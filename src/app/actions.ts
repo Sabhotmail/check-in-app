@@ -28,15 +28,18 @@ export async function submitCheckIn(formData: FormData) {
             if (profileError.code === '42P17') {
                 return { error: 'Database Policy Error: Infinite recursion. Please contact admin to fix RLS policies on "profiles" table.' }
             }
-            if (profileError.code === '42501') {
-                // RLS Policy violation: Likely the user cannot insert their own profile due to restrictive policies.
-                // However, we MUST have a profile to insert check_in.
-                // We will try to rely on the fact that maybe the profile exists but we can't see it?
-                // Or inform the user.
-                console.warn('RLS Policy denied profile creation. Check "profiles" table policies for INSERT.')
-                // Proceeding might fail on check_in insert if FK constraint fails, but let's try just in case the profile exists but is hidden from this user?
-                // Actually, if we can't read it (line 15) and can't insert it (line 19), we are stuck.
+            if (profileError.code === '23505') {
+                // Unique violation: Profile already exists.
+                // This happens if RLS hides the profile from SELECT, but it exists physically.
+                // We can proceed safely.
+                console.log('Profile already exists (caught 23505). Proceeding...')
+            } else if (profileError.code === '42501') {
+                // RLS Policy violation
+                console.warn('RLS Policy denied profile creation.')
                 return { error: 'Permission Denied: Cannot creating user profile. Please ask admin to enable INSERT policy for authenticated users on "profiles" table.' }
+            } else {
+                console.error('Unexpected profile error:', profileError)
+                return { error: 'Failed to initialize user profile.' }
             }
         }
     }
